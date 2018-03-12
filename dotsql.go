@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 // Preparer is an interface used by Prepare.
@@ -120,6 +121,29 @@ func LoadFromFile(sqlFile string) (*DotSql, error) {
 	defer f.Close()
 
 	return Load(f)
+}
+
+// LoadFromFileReplace imports SQL queries from the file.
+// It will search for string 'old' and replace it with 'new'.
+func LoadFromFileReplace(sqlFile, old, new string) (*DotSql, error) {
+	f, err := os.Open(sqlFile)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	scanner := &Scanner{}
+	queries := scanner.Run(bufio.NewScanner(f))
+
+	dotsql := &DotSql{
+		queries: queries,
+	}
+
+	for k, v := range queries {
+		dotsql.queries[k] = strings.Replace(v, old, new, -1)
+	}
+
+	return dotsql, nil
 }
 
 // LoadFromString imports SQL queries from the string.
