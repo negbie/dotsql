@@ -149,6 +149,18 @@ func LoadFromFileReplace(sqlFile, old, new string) (*DotSql, error) {
 // LoadFromStringReplace imports SQL queries from the string.
 // It will search for string 'old' and replace it with 'new'.
 func LoadFromStringReplace(sql, old, new string) (*DotSql, error) {
+	o := strings.Split(old, ",")
+	n := strings.Split(new, ",")
+
+	if len(o) != len(n) {
+		err := fmt.Errorf("dotsql: amount of %d old strings is not equal to %d new strings", len(o), len(n))
+		return nil, err
+	}
+
+	for i := 0; i < len(n); i++ {
+		sql = strings.Replace(sql, o[i], n[i], -1)
+	}
+
 	buf := bytes.NewBufferString(sql)
 
 	scanner := &Scanner{}
@@ -159,7 +171,7 @@ func LoadFromStringReplace(sql, old, new string) (*DotSql, error) {
 	}
 
 	for k, v := range queries {
-		dotsql.queries[k] = strings.Replace(v, old, new, -1)
+		dotsql.queries[k] = v
 	}
 
 	return dotsql, nil
